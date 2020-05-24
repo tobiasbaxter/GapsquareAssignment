@@ -126,13 +126,13 @@ for year in yearList:
 print('1st decile employers with the largest proportional wage gap where men earn more, by year:')
 
 print('2018')
-highestDecileMen[2018]
+print(highestDecileMen[2018])
 
 print('2019')
-highestDecileMen[2019]
+print(highestDecileMen[2019])
 
 print('2020')
-highestDecileMen[2020]
+print(highestDecileMen[2020])
 
 #May also consider top 10% largest proportional gaps, but bi-directional.
 
@@ -146,13 +146,13 @@ for year in yearList:
 print('1st decile employers with the largest proportional wage gap (unisex), by year:')
 
 print('2018')
-highestDecileAny[2018]
+print(highestDecileAny[2018])
 
 print('2019')
-highestDecileAny[2019]
+print(highestDecileAny[2019])
 
 print('2020')
-highestDecileAny[2020]
+print(highestDecileAny[2020])
 
 #Now can find 10 employers with smallest gap.
 #There are >10 with a gap of 0.0%; this could be due to reporting or measurement error.
@@ -165,13 +165,13 @@ for year in yearList:
 print('Employers with reported median wage gap of zero, by year:')
 
 print('2018')
-smallestGap[2018]
+print(smallestGap[2018])
 
 print('2019')
-smallestGap[2019]
+print(smallestGap[2019])
 
 print('2020')
-smallestGap[2020]
+print(smallestGap[2020])
 
 #Defining Industries.
 mergedData['SicCodes'] = mergedData['SicCodes'].astype(int)
@@ -235,27 +235,29 @@ mergedData['Industry ID'] = np.select(conditions, output2).astype(int)
 medians = mergedData.groupby('Industry').median()
 medians = medians[['DiffMedianHourlyPercent', 'modGap', 'Industry ID']].sort_values('DiffMedianHourlyPercent', ascending=False)
 worstIDs = list(medians['Industry ID'].head(10))
-medians[['DiffMedianHourlyPercent', 'modGap']].head(10)
 
 print('Table displaying 10 industries with the largest median pay gap over the whole period:')
+print(medians[['DiffMedianHourlyPercent', 'modGap']].head(10))
 
-medians.head(10).plot(y ='DiffMedianHourlyPercent', grid=True, kind='bar', figsize=(10,5))
 print('Bar chart comparing median pay gap between 10 worst industries over the whole period:')
+medians.head(10).plot(y ='DiffMedianHourlyPercent', grid=True, kind='bar', figsize=(10,5))
 
 medians2 = mergedData.groupby(['DueDate', 'Industry']).median()
 medians2 = medians2[['DiffMedianHourlyPercent', 'modGap']].sort_values('DiffMedianHourlyPercent', ascending=False)
-medians2.head(10)
+
 print('Table displaying 10 worst industry-years with the largest median pay gap:')
+medians2.head(10)
 
 medians2 = mergedData[mergedData['Industry ID'].isin(worstIDs)].groupby(['DueDate', 'Industry']).median()
 medians2 = medians2[['DiffMedianHourlyPercent']].unstack()
-medians2
 print('Table displaying yearly median pay gap in 10 worst industries:')
+print(medians2)
 
 lineGraph = medians2.plot(y ='DiffMedianHourlyPercent', grid=True, kind='line', figsize=(10,5)).legend(loc='center left',bbox_to_anchor=(1.0, 0.5))
-lineGraph
-print('Line graph of median pay gap over time in these 10 industries:')
 
+print('Line graph of median pay gap over time in these 10 industries:')
+lineGraph
+    
 print('Extensions:')
 print('- The variance of the pay gap could be considered across industries.')
 print('- In conjunction with sample size, hypothesis testing could then be conducted to determine if the pay')
