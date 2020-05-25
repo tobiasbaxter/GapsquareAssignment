@@ -45,13 +45,6 @@ for year in yearList:
     print(year, ':', dataURL[year])
 #List of years and URLs. Allows for verifying that data sources are correctly specified.
 
-This analysis considers gender pay gaps at the company level from 2017 to 2020.
-Data sources by year:
-2017 : https://gender-pay-gap.service.gov.uk/viewing/download-data/2017
-2018 : https://gender-pay-gap.service.gov.uk/viewing/download-data/2018
-2019 : https://gender-pay-gap.service.gov.uk/viewing/download-data/2019
-2020 : https://gender-pay-gap.service.gov.uk/viewing/download-data/2020
-
 data = {}
 colCheck = {}
 for year in yearList:
@@ -70,12 +63,6 @@ for year in yearList:
 #If this was not the case, would need to consider how to merge datasets containing
 #similar data under different headings.
 
-Checking data format is the same each year...
-2017 : No data categorisation issues.
-2018 : No data categorisation issues.
-2019 : No data categorisation issues.
-2020 : No data categorisation issues.
-
 COLUMNS = ['EmployerName', 'SicCodes', 'DiffMedianHourlyPercent', 'DueDate']
 mergedData = mergedDataAll[COLUMNS]
 #Macros for columns relevant to analysis.
@@ -88,9 +75,6 @@ else:
     print('No missing data for key variables.')
 #If there is missing data for key variables, these must be excluded from the analysis.
 
-Checking for missing data...
-There is missing data for key variables; these records have been deleted.
-
 #Many of the SIC codes are formatted incorrectly, and have extra characters/are too short;
 # only last 5 digits are required.
 
@@ -100,16 +84,11 @@ if all(mergedData['SicCodes'].str.len() == 5) & all(mergedData['SicCodes'].str.i
 else:
     print('SIC Codes are not correctly formatted; reformatting...')
 
-Checking industry SIC Codes are correctly formatted:
-SIC Codes are not correctly formatted; reformatting...
-
 if all(mergedData['SicCodes'].str.isdecimal()):
     print('SIC Codes contain only numeric characters as required.')
 else:
     mergedData.loc[:, 'SicCodes'] = mergedData['SicCodes'].map(lambda x: ''.join([y for y in x if y.isdigit()]))
     print('SIC Codes contain non-numeric characters; these have been deleted.')
-
-SIC Codes contain non-numeric characters; these have been deleted.
 
 if all(mergedData['SicCodes'].str.len() == 5):
     print('SIC Codes are all the correct length.')
@@ -119,9 +98,6 @@ else:
     print('SIC Codes are too long or too short; codes have been cut to 5 digits or deleted if too short.')
 print('SIC Codes are correctly formatted.')
 
-SIC Codes are too long or too short; codes have been cut to 5 digits or deleted if too short.
-SIC Codes are correctly formatted.
-
 print('Gender pay gap information submission dates:')
 print(*mergedData['DueDate'].unique(), sep='\n')
 #There are 8 unique due dates; for the purposes of this analysis, will consider year submitted:
@@ -130,31 +106,12 @@ print(*mergedData['DueDate'].unique(), sep='\n')
 # 2020: Due Date on 31/03/2020 or 04/05/2020
 # 2021: Due Date on 31/03/2021 or 04/05/2021
 
-Gender pay gap information submission dates:
-05/04/2018 00:00:00
-31/03/2018 00:00:00
-05/04/2019 00:00:00
-31/03/2019 00:00:00
-05/04/2020 00:00:00
-31/03/2020 00:00:00
-05/04/2021 00:00:00
-31/03/2021 00:00:00
-
 print('The data will be considered on a yearly basis.')
 mergedData.loc[:, 'DueDate'] = mergedData['DueDate'].str[6:10].astype(int)
 #Formats Due Date as a date and time, converts into year of data submission.
 
-The data will be considered on a yearly basis.
-
 print(mergedData['DueDate'].value_counts())
 print('Only 12 observations for 2021; these will be disregarded. Sample size too small for meaningful inference.')
-
-2019    10093
-2018     9590
-2020     5081
-2021       11
-Name: DueDate, dtype: int64
-Only 12 observations for 2021; these will be disregarded. Sample size too small for meaningful inference.
 
 mergedData = mergedData[mergedData['DueDate'] != 2021]
 mergedData['modGap'] = mergedData['DiffMedianHourlyPercent'].abs().copy()
@@ -171,67 +128,14 @@ for year in yearList:
     highestDecileMen[year].columns = ['Employer', 'Median Hourly Wage Gap (Men)']
 print('1st decile employers with the largest proportional wage gap where men earn more, by year:')
 
-1st decile employers with the largest proportional wage gap where men earn more, by year:
-
 print('2018:')
 highestDecileMen[2018]
-
-2018:
-
-	Employer 	Median Hourly Wage Gap (Men)
-8047 	Shrewsbury Academies Trust 	121.2
-5972 	MINT PAY SOLUTIONS LTD 	97.0
-9949 	VIDA HEALTHCARE LIMITED 	79.8
-1192 	BOUX AVENUE LIMITED 	75.7
-5609 	MALLING HEALTH (UK) LIMITED 	73.0
-... 	... 	...
-5771 	MCLAREN APPLIED TECHNOLOGIES LIMITED 	32.9
-3003 	ENGIE BUILDINGS LIMITED 	32.9
-2079 	CMS CAMERON MCKENNA NABARRO OLSWANG SERVICES L... 	32.8
-5379 	Lloyds Banking Group PLC 	32.8
-1306 	BRISTOL STREET FOURTH INVESTMENTS LIMITED 	32.8
-
-959 rows × 2 columns
 
 print('2019')
 highestDecileMen[2019]
 
-2019
-
-	Employer 	Median Hourly Wage Gap (Men)
-8963 	T. CLASS SECURITY LIMITED 	100.0
-631 	ASH & LACY FINISHES LIMITED 	100.0
-10210 	VIDA HEALTHCARE LIMITED 	79.3
-8832 	SUFFOLK GP FEDERATION C.I.C. 	74.8
-6436 	NEW MILLENNIA PAYROLL SERVICES LIMITED 	74.3
-... 	... 	...
-7766 	ROGER BULLIVANT LIMITED 	32.5
-7113 	PETRIE TUCKER AND PARTNERS LIMITED 	32.5
-10261 	VOLKERRAIL GROUP LIMITED 	32.5
-7372 	PROTEC FIRE DETECTION PUBLIC LIMITED COMPANY 	32.5
-9583 	The Southfield Grange Trust 	32.4
-
-1009 rows × 2 columns
-
 print('2020')
 highestDecileMen[2020]
-
-2020
-
-	Employer 	Median Hourly Wage Gap (Men)
-4574 	T. CLASS SECURITY LIMITED 	100.0
-3099 	MINT PAY SOLUTIONS LTD 	85.0
-4510 	SUFFOLK GP FEDERATION C.I.C. 	83.6
-4808 	THE LEARNING FOR LIFE PARTNERSHIP 	77.2
-4892 	The Royal Hospital School 	75.0
-... 	... 	...
-127 	AIRBUS HELICOPTERS UK LIMITED 	33.5
-1445 	DUN & BRADSTREET LIMITED 	33.4
-3809 	RECKITT BENCKISER HEALTH LIMITED 	33.4
-5085 	TXM PLANT LIMITED 	33.3
-909 	CARTER SYNERGY LIMITED 	33.3
-
-508 rows × 2 columns
 
 #May also consider top 10% largest proportional gaps, but bi-directional.
 
@@ -260,67 +164,14 @@ for year in yearList:
     highestDecileAny[year].columns = ['Employer', 'Median Hourly Wage Gap (all)', 'Earns More']
 print('1st decile employers with the largest proportional wage gap where men or women earn more, by year:')
 
-1st decile employers with the largest proportional wage gap where men or women earn more, by year:
-
 print('2018')
 highestDecileAny[2018]
-
-2018
-
-	Employer 	Median Hourly Wage Gap (all) 	Earns More
-838 	BAR 2010 LIMITED 	196.5 	Women
-4496 	INBRELLA LIMITED 	164.0 	Women
-8047 	Shrewsbury Academies Trust 	121.2 	Men
-7304 	RANDSTAD HR SOLUTIONS LIMITED 	103.6 	Women
-7020 	PLUS PAYROLL SERVICES LIMITED 	100.1 	Women
-... 	... 	... 	...
-8785 	TATA GLOBAL BEVERAGES GB LIMITED 	33.4 	Men
-1744 	CBES LIMITED 	33.4 	Men
-5284 	LIBERTY SPECIALTY MARKETS LIMITED 	33.3 	Men
-2628 	Diocese of Bristol Academies Trust 	33.3 	Men
-8667 	SWANN-MORTON LIMITED 	33.3 	Men
-
-959 rows × 3 columns
 
 print('2019')
 highestDecileAny[2019]
 
-2019
-
-	Employer 	Median Hourly Wage Gap (all) 	Earns More
-8963 	T. CLASS SECURITY LIMITED 	100.0 	Men
-631 	ASH & LACY FINISHES LIMITED 	100.0 	Men
-7323 	PRIME LIFE LIMITED 	92.3 	Women
-7534 	Realise Futures Cic 	90.7 	Women
-7496 	RANDSTAD HR SOLUTIONS LIMITED 	87.1 	Women
-... 	... 	... 	...
-8590 	SSE RENEWABLES LIMITED 	33.1 	Men
-9960 	UK GREETINGS LIMITED 	33.1 	Men
-10300 	W.T. Parker Ltd. 	33.1 	Men
-10499 	WESTCON GROUP EUROPEAN OPERATIONS LIMITED 	33.1 	Men
-7145 	PIB GROUP LIMITED 	33.1 	Men
-
-1009 rows × 3 columns
-
 print('2020')
 highestDecileAny[2020]
-
-2020
-
-	Employer 	Median Hourly Wage Gap (all) 	Earns More
-1400 	DONALDSON TIMBER ENGINEERING LIMITED 	134.0 	Women
-1301 	DAVID BROWN GEAR SYSTEMS LIMITED 	103.3 	Women
-4574 	T. CLASS SECURITY LIMITED 	100.0 	Men
-2307 	HYPEROPTIC LTD 	86.5 	Women
-3099 	MINT PAY SOLUTIONS LTD 	85.0 	Men
-... 	... 	... 	...
-3984 	RSBG UK LTD 	34.0 	Men
-2727 	LEODIS ACADEMIES TRUST 	34.0 	Men
-3381 	NOTEMACHINE GROUP HOLDINGS LIMITED 	34.0 	Men
-2198 	HFW NOMINEES LIMITED. 	34.0 	Men
-2499 	JIGSAW SYSTEMS LIMITED 	34.0 	Men
-
-508 rows × 3 columns
 
 #Now can find 10 employers with smallest gap.
 #There are >10 with a gap of 0.0%; this could be due to reporting or measurement error.
@@ -333,67 +184,14 @@ for year in yearList:
     smallestGap[year].columns = ['Employer', 'Median Hourly Wage Gap (all)']
 print('Employers with reported median wage gap of zero, by year:')
 
-Employers with reported median wage gap of zero, by year:
-
 print('2018')
 smallestGap[2018]
-
-2018
-
-	Employer 	Median Hourly Wage Gap (all)
-928 	BE ROTA LIMITED 	0.0
-8562 	STOKE CITY (PROPERTY) LIMITED 	0.0
-1001 	BESPOKE HOTELS (ISIS) 2 LIMITED 	0.0
-9648 	Ts Tech UK Ltd 	0.0
-9519 	TOTAL CATERING SOLUTIONS RECRUITMENT LIMITED 	0.0
-... 	... 	...
-3947 	H.TEMPEST LIMITED 	0.0
-2263 	COUNTRY COURT CARE HOMES LIMITED 	0.0
-4190 	HEXAGON CARE SERVICES LIMITED 	0.0
-2267 	COUNTRYWIDE CARE HOMES (2) LIMITED 	0.0
-10292 	WHITECLIFF BAY HOLIDAY PARK LIMITED 	0.0
-
-875 rows × 2 columns
 
 print('2019')
 smallestGap[2019]
 
-2019
-
-	Employer 	Median Hourly Wage Gap (all)
-5938 	MCE INSURANCE LIMITED 	0.0
-1109 	BIRKIN CLEANING SERVICES LIMITED 	0.0
-2770 	Doncaster Culture And Leisure Trust 	0.0
-8995 	TAMHEALTH LIMITED 	0.0
-9139 	THE AIR AMBULANCE SERVICE TRADING LIMITED 	0.0
-... 	... 	...
-4643 	INDEPENDENT CATERING MANAGEMENT LIMITED 	0.0
-7615 	RENAISSANCE CARE (NO1) LIMITED 	0.0
-4728 	INTEGREON MANAGED SOLUTIONS LIMITED 	0.0
-295 	AITCH CARE HOMES (LONDON) LIMITED 	0.0
-1179 	BLUNDELL'S OF LIVERPOOL LTD 	0.0
-
-881 rows × 2 columns
-
 print('2020')
 smallestGap[2020]
-
-2020
-
-	Employer 	Median Hourly Wage Gap (all)
-5076 	TWENTY FOUR SEVEN INDUSTRIAL RECRUITMENT LTD 	0.0
-4993 	TOMASZDYL PR LTD 	0.0
-568 	BKUK GROUP LIMITED 	0.0
-518 	BENNETT RESTAURANTS LTD 	0.0
-291 	ARVATO CRM LIMITED 	0.0
-... 	... 	...
-4119 	SENTINEL LEISURE TRUST 	0.0
-1507 	EASYRECRUITUK.COM LIMITED 	0.0
-1502 	EASTERN COUNTIES LAUNDRIES LIMITED 	0.0
-4148 	SHEFFCARE LIMITED 	0.0
-3693 	Preston City Council 	0.0
-
-386 rows × 2 columns
 
 #Defining Industries.
 mergedData['SicCodes'] = mergedData['SicCodes'].astype(int)
@@ -461,50 +259,18 @@ medians = medians[['DiffMedianHourlyPercent']]
 medians.columns = ['Median Hourly Wage Gap (Men)']
 print('Table displaying 10 industries with the largest median pay gap over the whole period:')
 
-Table displaying 10 industries with the largest median pay gap over the whole period:
-
 medians.head(10)
-
-	Median Hourly Wage Gap (Men)
-Industry 	
-Mining and Quarrying 	30.2
-Construction 	23.3
-Financial and insurance activities 	22.6
-Education 	21.1
-Activities of extraterritorial organisations and bodies 	20.0
-Information and communication 	18.5
-Professional, scientific and technical activities 	16.1
-Electricity, gas, steam and air conditioning supply 	14.4
-Real estate activities 	11.0
-Manufacturing 	9.4
 
 barChart1 = medians.head(10).plot(y = 'Median Hourly Wage Gap (Men)', grid=True, kind='bar', legend=False, figsize=(10,5))
 barChart1.set(xlabel = "Industry", ylabel = 'Median Hourly Wage Gap (Men)')
 print('Bar chart comparing median pay gap across 10 worst industries over the whole period:')
-
-Bar chart comparing median pay gap across 10 worst industries over the whole period:
 
 medians2 = mergedData.groupby(['Industry', 'DueDate']).median()
 medians2 = medians2[['DiffMedianHourlyPercent']].sort_values('DiffMedianHourlyPercent', ascending=False)
 medians2.columns = ['Median Hourly Wage Gap (Men)']
 print('Table displaying 10 worst industry-years with the largest median pay gap:')
 
-Table displaying 10 worst industry-years with the largest median pay gap:
-
 medians2.head(10)
-
-		Median Hourly Wage Gap (Men)
-Industry 	DueDate 	
-Mining and Quarrying 	2019 	33.60
-2020 	27.10
-Construction 	2018 	24.65
-Financial and insurance activities 	2020 	24.30
-Construction 	2019 	24.20
-Financial and insurance activities 	2019 	22.60
-2018 	22.00
-Education 	2020 	22.00
-2019 	21.00
-2018 	20.95
 
 mergedData.columns = ['EmployerName', 'SicCodes', 'Median Hourly Wage Gap (Men)', 'DueDate', 'modGap', 'Industry', 'Industry ID']
 medians2 = mergedData[mergedData['Industry ID'].isin(worstIDs)].groupby(['DueDate', 'Industry']).median()
@@ -512,23 +278,12 @@ medians2 = medians2[['Median Hourly Wage Gap (Men)']].unstack()
 
 print('Table displaying yearly median pay gap in 10 worst industries:')
 
-Table displaying yearly median pay gap in 10 worst industries:
-
 medians2
-
-	Median Hourly Wage Gap (Men)
-Industry 	Activities of extraterritorial organisations and bodies 	Construction 	Education 	Electricity, gas, steam and air conditioning supply 	Financial and insurance activities 	Information and communication 	Manufacturing 	Mining and Quarrying 	Professional, scientific and technical activities 	Real estate activities
-DueDate 										
-2018 	16.0 	24.65 	20.95 	15.00 	22.0 	18.2 	9.75 	15.3 	15.6 	11.10
-2019 	20.0 	24.20 	21.00 	14.15 	22.6 	18.3 	9.35 	33.6 	16.3 	11.00
-2020 	NaN 	19.50 	22.00 	13.70 	24.3 	19.2 	9.00 	27.1 	16.8 	10.95
 
 lineGraph = medians2.plot(y = 'Median Hourly Wage Gap (Men)', grid=True, kind='line', figsize=(15,10))
 lineGraph.set_ylabel('Median Hourly Wage Gap (Men)')
 lineGraph.legend(loc='center left',bbox_to_anchor=(1.0, 0.5))
 print('Line graph of median pay gap over time in these 10 industries:')
-
-Line graph of median pay gap over time in these 10 industries:
 
 print('Extensions:')
 print('- The variance of the pay gap could be considered across industries.')
@@ -536,11 +291,4 @@ print('- In conjunction with sample size, hypothesis testing could then be condu
 print('   gap is significant.')
 print('- A regression analysis including covariates that can be observed in the data set e.g. company size would be')
 print('   more informative of the type of companies which tend to have larger pay gaps.')
-
-Extensions:
-- The variance of the pay gap could be considered across industries.
-- In conjunction with sample size, hypothesis testing could then be conducted to determine if the pay
-   gap is significant.
-- A regression analysis including covariates that can be observed in the data set e.g. company size would be
-   more informative of the type of companies which tend to have larger pay gaps.
 
