@@ -14,7 +14,7 @@
 #Run the analysis required 
 
 from pandas import *
-from pandas._testing import *
+from pandas.testing import *
 from numpy import *
 import datetime
 import warnings
