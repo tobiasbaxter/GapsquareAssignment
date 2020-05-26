@@ -103,6 +103,8 @@ else:
     mergedData.loc[:, 'SicCodes'] = mergedData['SicCodes'].str[-5:]
     mergedData = mergedData[mergedData['SicCodes'].apply(lambda x: len(x) == 5)]
     print('SIC Codes are too long or too short; codes have been cut to 5 digits or deleted if too short.')
+mergedData = mergedData[mergedData['SicCodes'] != 99999]
+#Deletes records of dormant companies.
 print('\nSIC Codes are now correctly formatted.')
 
 # In[ ]:
@@ -206,8 +208,7 @@ conditions = [
     ((mergedData['SicCodes'] >= 90010) & (mergedData['SicCodes'] <= 93290)),
     ((mergedData['SicCodes'] >= 94110) & (mergedData['SicCodes'] <= 96090)),
     ((mergedData['SicCodes'] >= 97000) & (mergedData['SicCodes'] <= 98200)),
-    (mergedData['SicCodes'] == 99000),
-    (mergedData['SicCodes'] == 99999),
+    (mergedData['SicCodes'] == 99000)
 
 ]
 
@@ -232,22 +233,25 @@ output1 = [
     'Arts, entertainment and recreation',
     'Other service activities',
     'Activities of households as employers; undifferentiated goods and services producing activities of households for own use',
-    'Activities of extraterritorial organisations and bodies',
-    'Dormant'
+    'Activities of extraterritorial organisations and bodies'
 ]
 
-output2 = list(range(1, 23))
+output2 = list(range(1, 22))
 
 mergedData['Industry'] = np.select(conditions, output1)
 mergedData['Industry ID'] = np.select(conditions, output2).astype(int)
+mergedData = mergedData[mergedData['SicCodes'] != 99999]
+mergedData = mergedData.drop(mergedData[mergedData['SicCodes']==99999].index)
+mergedData = mergedData[mergedData['Industry'] != 0]
+mergedData = mergedData.drop(mergedData[mergedData['Industry']==0].index)
 
 # In[ ]:
 medians = mergedData.groupby('Industry').median()
-medians = medians[['DiffMedianHourlyPercent', 'Industry ID']].sort_values('DiffMedianHourlyPercent', ascending=False)
-worstIDs = list(medians['Industry ID'].head(10))
+medians = medians[['DiffMedianHourlyPercent', 'Industry ID']].sort_values('DiffMedianHourlyPercent')
+bestIDs = list(medians['Industry ID'].head(10))
 medians = medians[['DiffMedianHourlyPercent']]
 medians.columns = ['Median Hourly Wage Gap (Men)']
-print('\nTable displaying 10 industries with the largest median pay gap over the whole period:\n')
+print('\nTable displaying 10 industries with the smallest median pay gap over the whole period:\n')
 pprintindex(medians.head(10))
 # In[ ]:
 
@@ -255,26 +259,28 @@ pprintindex(medians.head(10))
 # In[ ]:
 barChart1 = medians.head(10).plot(y = 'Median Hourly Wage Gap (Men)', grid=True, kind='bar', legend=False, figsize=(10,5))
 barChart1.set(xlabel = "Industry", ylabel = 'Median Hourly Wage Gap (Men)')
-print('\nBar chart comparing median pay gap across 10 worst industries over the whole period:\n')
+print('\nBar chart comparing median pay gap across these 10 industries over the whole period:\n')
 plt.show()
 
 # In[ ]:
 mergedData.columns = ['EmployerName', 'SicCodes', 'Median Hourly Wage Gap (Men)', 'Year', 'modGap', 'Industry', 'Industry ID']
 medians2 = mergedData.groupby(['Industry', 'Year']).median()
-medians2 = medians2[['Median Hourly Wage Gap (Men)']].sort_values('Median Hourly Wage Gap (Men)', ascending=False)
+medians2 = medians2[['Median Hourly Wage Gap (Men)']].sort_values('Median Hourly Wage Gap (Men)')
 medians2.columns = ['Median Hourly Wage Gap (Men)']
-print('\nTable displaying 10 industry-years with the largest median pay gap:\n')
+print('\nTable displaying 10 industry-years with the smallest median pay gap:\n')
 pprintindex(medians2.head(10))
 
 # In[ ]:
 mergedData.columns = ['EmployerName', 'SicCodes', 'Median Hourly Wage Gap (Men)', 'Year', 'modGap', 'Industry', 'Industry ID']
-medians2 = mergedData[mergedData['Industry ID'].isin(worstIDs)].groupby(['Industry', 'Year']).median()
+medians2 = mergedData[mergedData['Industry ID'].isin(bestIDs)].groupby(['Industry', 'Year']).median()
 medians2 = medians2[['Median Hourly Wage Gap (Men)']].unstack()
-print('\nTable displaying yearly median pay gap in 10 worst industries:\n')
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', None)
+print('\nTable displaying yearly median pay gap in 10 best industries:\n')
 display(medians2)
 
 # In[ ]:
-medians2 = mergedData[mergedData['Industry ID'].isin(worstIDs)].groupby(['Year', 'Industry']).median()
+medians2 = mergedData[mergedData['Industry ID'].isin(bestIDs)].groupby(['Year', 'Industry']).median()
 medians2 = medians2[['Median Hourly Wage Gap (Men)']].unstack()
 lineGraph = medians2.plot(y = 'Median Hourly Wage Gap (Men)', grid=True, kind='line', figsize=(15,10))
 lineGraph.set_ylabel('Median Hourly Wage Gap (Men)')
@@ -288,4 +294,4 @@ print('- The variance of the pay gap could be considered across industries.')
 print('- In conjunction with sample size, hypothesis testing could then be conducted to determine if the pay')
 print('   gap is significant.')
 print('- A regression analysis including covariates that can be observed in the data set e.g. company size would be')
-print('   more informative of the type of companies which tend to have larger pay gaps.')
+print('   more informative of the type of companies which tend to have smaller or larger pay gaps.')
